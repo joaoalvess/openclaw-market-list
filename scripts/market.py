@@ -99,10 +99,30 @@ def parse_qty_and_unit(token: str):
     return qty, (unit or "un")
 
 
+def parse_leading_qty(args):
+    if not args:
+        return None
+    first = args[0].strip().lower()
+    m = re.match(r"^([0-9]+(?:[\.,][0-9]+)?)$", first)
+    if not m:
+        return None
+    qty = float(m.group(1).replace(",", "."))
+    if qty <= 0:
+        return None
+    return qty, "un"
+
+
 def format_qty(qty: float) -> str:
     if qty.is_integer():
         return str(int(qty))
     return f"{qty:.2f}".rstrip("0").rstrip(".")
+
+
+def format_qty_with_unit(qty: float, unit: str) -> str:
+    qty_str = format_qty(qty)
+    if unit == "un":
+        return f"{qty_str} unidade" if qty == 1 else f"{qty_str} unidades"
+    return f"{qty_str}{unit}"
 
 
 def load_data():
@@ -204,6 +224,12 @@ def cmd_add(args):
         qty, unit = maybe_qty
         item_parts = args[:-1]
 
+    if not maybe_qty:
+        leading_qty = parse_leading_qty(args)
+        if leading_qty and len(args) > 1:
+            qty, unit = leading_qty
+            item_parts = args[1:]
+
     if not item_parts:
         print("Informe um item para adicionar.")
         return 1
@@ -242,7 +268,7 @@ def cmd_add(args):
 
     suggestions = suggest_for(item_key, data)
 
-    msg = f"Adicionado: {item_display} ({format_qty(qty)}{unit})."
+    msg = f"Adicionado: {item_display} ({format_qty_with_unit(qty, unit)})."
     print(msg)
     if suggestions:
         print("Sugestões para comprar junto: " + ", ".join(suggestions[:5]) + ".")
@@ -257,7 +283,7 @@ def cmd_list(_args):
     items = data.get("items", [])
 
     if not items:
-        print("Sua lista de mercado está vazia.")
+        print("Não tem nenhum item na sua lista. Comece adicionando alguma coisa.")
         if corrupted:
             print("Observação: o arquivo anterior estava corrompido, fiz backup e reset controlado.")
         return 0
@@ -269,7 +295,7 @@ def cmd_list(_args):
         name = it.get("name", "")
         qty = float(it.get("qty", 1))
         unit = it.get("unit", "un")
-        print(f"{i}. {name} — {format_qty(qty)}{unit}")
+        print(f"{i}. {name} — {format_qty_with_unit(qty, unit)}")
 
     print(f"Total: {len(items_sorted)} itens")
     if corrupted:

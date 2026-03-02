@@ -1,18 +1,5 @@
 {
   "version": 1,
-  "updatedAt": "2026-03-02T19:54:20Z",
-  "items": [
-    {
-      "name": "arroz",
-      "qty": 5.0,
-      "unit": "kg",
-      "addedAt": "2026-03-02T19:54:20Z"
-    },
-    {
-      "name": "cafe",
-      "qty": 1.0,
-      "unit": "un",
-      "addedAt": "2026-03-02T19:54:20Z"
-    }
-  ]
+  "updatedAt": null,
+  "items": []
 }
